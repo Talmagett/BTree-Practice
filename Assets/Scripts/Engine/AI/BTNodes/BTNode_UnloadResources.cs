@@ -18,7 +18,21 @@ namespace Game.Engine
         
         protected override BTState OnUpdate(IBlackboard blackboard, float deltaTime)
         {
-            throw new NotImplementedException();
+            if (!blackboard.TryGetObject(character, out IAtomicObject aiCharacter))
+                return BTState.FAILURE;
+            if(!blackboard.TryGetObject(targetStorage, out IAtomicObject barn))
+                return BTState.FAILURE;
+
+            var aiCharacterResourceStorage = aiCharacter.Get<ResourceStorage>(ObjectAPI.ResourceStorage);
+            var barnResourceStorage = barn.Get<ResourceStorage>(ObjectAPI.ResourceStorage);
+            if (barnResourceStorage.IsFull())
+                return BTState.FAILURE;
+            
+            var minPuttingResources = Mathf.Min(barnResourceStorage.FreeSlots, aiCharacterResourceStorage.Current);
+            barnResourceStorage.PutResources(minPuttingResources);
+            aiCharacterResourceStorage.ExtractResources(minPuttingResources);
+            
+            return BTState.SUCCESS;
         }
     }
 }

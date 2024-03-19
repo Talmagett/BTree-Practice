@@ -17,11 +17,26 @@ namespace Game.Engine
         private ushort resourceService;
 
         [SerializeField, BlackboardKey]
-        private ushort targetResource;
+        private ushort target;
 
+        [SerializeField, BlackboardKey]
+        private ushort resource;
+        
         protected override BTState OnUpdate(IBlackboard blackboard, float deltaTime)
         {
-            throw new NotImplementedException();
+            if (!blackboard.TryGetObject(character, out IAtomicObject movingCharacter))
+                return BTState.FAILURE;
+            if(!blackboard.TryGetObject(resourceService, out ResourceService resourceServiceValue))
+                return BTState.FAILURE;
+            
+            var transform = movingCharacter.Get<Transform>(ObjectAPI.Transform);
+            if (resourceServiceValue.FindClosestResource(transform.position, out IAtomicObject tree))
+            {
+                blackboard.SetObject(target,tree);
+                blackboard.SetObject(resource,tree);
+                return BTState.SUCCESS;
+            }
+            return BTState.FAILURE;
         }
     }
 }
